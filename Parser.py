@@ -47,8 +47,8 @@ class Parser:
         
         #generate operator tokens
         self.operator_tokens = []
-        for l in self.operators.values():
-            for type in l:
+        for l in sorted(self.operators.keys(), reverse=True):
+            for type in self.operators[l]:
                 self.operator_tokens.append(type.identifier)
         
         #regex tokens for operands
