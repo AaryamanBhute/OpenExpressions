@@ -1,12 +1,18 @@
-from ExpressionNodes import *
-from Parser import Parser
+from Tokenizer import Tokenizer
+from enum import Enum
+
+class Token(Enum):
+    INTEGER = 1
+    FLOAT = 2
+    VARIABLE = 3
+    PLUS = 4
+    MINUS = 5
+    TIMES = 6
+    DIV = 7
+    INTDIV = 8
 
 if __name__ == "__main__":
-    add = Add(None, None)
-    parser = Parser()
-    #print(parser)
-    string_expr = "4 + apple ** 3"
-    #print("  ".join([token[0] for token in parser.tokenize(string_expr)]))
-    expr = parser.parse(string_expr)
-    printExpr(expr)
-    print(expr.eval({"apple" : 2}))
+    tokenizer = Tokenizer((r"\d+", Token.INTEGER), (r"\d*.\d+", Token.FLOAT), (r"[a-zA-Z]\w*", Token.VARIABLE),
+                           (r"\+", Token.PLUS), (r"-", Token.MINUS), (r"\*", Token.TIMES), (r"//", Token.INTDIV), (r"/", Token.DIV))
+    print(tokenizer.tokenize("a + b // ^ 15 + 16.2"))
+    
