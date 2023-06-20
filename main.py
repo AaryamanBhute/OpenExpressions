@@ -1,4 +1,5 @@
 from Tokenizer import Tokenizer
+from Parser import Parser
 from enum import Enum
 
 class Token(Enum):
@@ -12,7 +13,17 @@ class Token(Enum):
     INTDIV = 8
 
 if __name__ == "__main__":
-    tokenizer = Tokenizer((r"\d+", Token.INTEGER), (r"\d*.\d+", Token.FLOAT), (r"[a-zA-Z]\w*", Token.VARIABLE),
-                           (r"\+", Token.PLUS), (r"-", Token.MINUS), (r"\*", Token.TIMES), (r"//", Token.INTDIV), (r"/", Token.DIV))
-    print(tokenizer.tokenize("a + b // ^ 15 + 16.2"))
+    #tokenizer = Tokenizer((r"\d+", Token.INTEGER), (r"\d*.\d+", Token.FLOAT), (r"[a-zA-Z]\w*", Token.VARIABLE),
+    #                       (r"\+", Token.PLUS), (r"-", Token.MINUS), (r"\*", Token.TIMES), (r"//", Token.INTDIV), (r"/", Token.DIV))
+    #print(tokenizer.tokenize("a + b //   15 + 16.2"))
+
+    parser = Parser()
+    """for nt in parser.grammar.grammar:
+        for rule in parser.grammar.grammar[nt]:
+            l = nt + " -> "
+            for e in rule:
+                l += str(e) + ", "
+            print(l)
+    print(parser.tokenize("a + b // 15 + 16.2"))
+    print(parser.grammar.firsts)"""
     
