@@ -129,14 +129,18 @@ class Grammar:
         self.automaton = build(set([
             StateRule(self.start_symbol, self.grammar[self.start_symbol][0], self.eof, 0)
         ]))
+
+        print("num states:", len(states))
     
     def dumpAutomaton(self):
         lines = []
-        visited = set()
+        visited = []
         def visit(state):
-            if(id(state) in visited): return
-            visited.add(id(state))
-            if(state == "ACCEPT" or state == None): return
+            if(state in visited): return
+            visited.append(state)
+            if(state == "ACCEPT"): 
+                lines.append("\n\nstate id: " + str(id(state)) + " is ACCEPT \n")
+                return
             line = ""
             line += '\n'
             line += ("state id:" + str(id(state)) + "\n")
@@ -163,4 +167,5 @@ class Grammar:
             for nex in state.next.values():
                 visit(nex)
         visit(self.automaton)
+        print("len visited", len(visited), visited)
         print("".join(lines))
