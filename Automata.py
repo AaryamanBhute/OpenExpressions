@@ -1,7 +1,7 @@
-class Node:
-    def __init__(self) -> None:
+class State:
+    def __init__(self, rules=None) -> None:
         self.next = {}
-        self.rules = set()
+        self.rules = set() if rules == None else rules
     
     def addRule(self, rule, pos, lookahead):
         self.rules.add((rule, pos, lookahead))
@@ -10,9 +10,9 @@ class Node:
         self.next[el] = state
     
     def __eq__(self, other: object) -> bool:
-        if(isinstance(other, Node)):
-            return(self.rules == other.rules)
-        return(False)
+        if(not isinstance(other, State)):
+            return(False)
+        return(self.rules == other.rules)
     
     def __str__(self) -> str:
         ret = str(id(self)) + '\n'

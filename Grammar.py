@@ -1,104 +1,166 @@
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import cache
-from Automata import Node
+from Automata import State
+from enum import Enum
 
-class EOF:
+@dataclass(unsafe_hash=True)
+class StateRule:
+    nonterminal : str
+    production : tuple
+    lookahead : any #value of enum type
+    cursor: int
+
     def __str__(self) -> str:
-        return("$")
+        line = self.nonterminal + " -> "
+        for e in self.production[:self.cursor]:
+            line += str(e) + " "
+        line += ". "
+        for e in self.production[self.cursor:]:
+           line += str(e) + " "
+        line += ", " + str(self.lookahead)
+        return(line)
+       
 
 class Grammar:
-    def __init__(self, tokens, start) -> None:
-        self.end = EOF()
+    def __init__(self, terminals : Enum, start : str, eof: any) -> None:
         self.start_symbol = start
-        self.Tokens = tokens
+        self.eof = eof
+        self.Terminals = terminals
         self.grammar = defaultdict(list)
-        self.firsts = None
+        self.firsts = defaultdict(set)
+        self.nonterminals = set()
+        self.automaton = None
+    def dump(self):
+        for el in self.grammar:
+            print(el, self.grammar[el])
     def addRule(self, nt, rule):
         self.grammar[nt].append(rule)
+        self.nonterminals.add(nt)
+        for e in rule:
+            if(isinstance(e, str)): self.nonterminals.add(e)
     def genFirsts(self):
-        self.firsts = {}
-        for nonterminal in self.grammar:
-            self.firsts[nonterminal] = self.first(nonterminal)
+        self.first.cache_clear()
+        self.firsts.clear()
+        changed = True
+        while(changed):
+            changed = False
+            for nt in self.nonterminals:
+                orig = self.firsts[nt].copy()
+                for prod in self.grammar[nt]:
+                    for term in prod:
+                        if(isinstance(term, str)):
+                            self.firsts[nt] |= (self.firsts[term] - set([None]))
+                            if(None not in self.firsts[term]): break
+                        else:
+                            self.firsts[nt].add(term)
+                            break
+                    else:
+                        self.firsts[nt].add(None) #if can reach here it's nullable
+                if(self.firsts[nt] != orig):
+                    changed = True
     @cache
-    def first(self, t):
-        if(t == None):
-            return(set([None]))
-        if(isinstance(t, self.Tokens)):
-           return(set([t]))
-        first = set()
-        rules = self.grammar[t]
-        nullable = False
-        if([] in rules):
-            first.add(None)
-            nullable = True
-        for rule in rules:
-            if(rule == []): continue
-            for el in rule:
-                if(el == t and nullable): continue
-                if(el == t and not nullable): break
-                conts = self.first(el)
-                first = first.union(conts)
-                if(None not in conts):
-                    break
-        return(first)
+    def first(self, tokens) -> set:
+        ret = set()
+        for token in tokens:
+            if(isinstance(token, str)):
+                ret |= self.firsts[token]
+                if(None not in self.firsts[token]): break
+            else:
+                ret.add(token)
+                break
+        else:
+            ret.add(None)
+        return(ret)
     
-    @cache
-    def firstList(self, l):
-        first = set()
-        for e in l:
-            if(e == self.end):
-                first.add(self.end)
-                return(first)
-            cur = self.first(e)
-            first = first.union(cur)
-            if(None not in cur): break
-        return(first)
-
     def buildAutomaton(self):
         states = []
         def existing(state):
             for s in states:
-                if(state == s): return(s)
+                if(s == state): 
+                    return(s)
             return(None)
-        
         def closure(rules):
-            new_rules = set()
-            for rule, cursor, looakahead in rules:
-                if(cursor >= len(rule) or not isinstance(rule[cursor], str)): #if cursor at end or next is a terminal
-                    continue
-                for production in self.grammar[rule[cursor]]:
-                    #print("prod", production)
-                    #print("rule", rule , cursor,rule[cursor + 1:] + (looakahead,))
-                    #print(rule[cursor + 1:] + (looakahead,), self.firstList(rule[cursor + 1:] + (looakahead,)))
-                    for token in self.firstList(rule[cursor + 1:] + (looakahead,)):
-                        new_rules.add(((rule[cursor],) + production, 1, token))
-            for new_rule in new_rules: rules.add(new_rule)
-        
-        #state0 = set()
-        #state0.add(((self.start_symbol,) + self.grammar[self.start_symbol][0], 1, self.end)) #setup initial state
-        #closure(state0)
-        #for rule in state0:
-        #    print(rule)
+            while(True):
+                orig = rules.copy()
+                new_rules = set()
+                for rule in rules:
+                    nonterminal, production, lookahead, cursor = rule.nonterminal, rule.production, rule.lookahead, rule.cursor
+                    if(cursor >= len(production) or not isinstance(production[cursor], str)): continue
+                    new_nonterminal = production[cursor]
+                    for new_prod in self.grammar[new_nonterminal]:
+                        for next_token in self.first(production[cursor+1:]):
+                            if(next_token == None):
+                                new_rules.add(StateRule(new_nonterminal, new_prod, lookahead, 0))
+                                continue
+                            new_rules.add(StateRule(new_nonterminal, new_prod, next_token, 0))
+                rules |= new_rules
+                if(rules == orig):
+                    break
+        def build(rules):
+            state = State(rules.copy())
+            closure(state.rules)
+            ex = existing(state)
+            if(ex != None):
+                return(ex)
+            states.append(state)
 
-        def buildState(rules):
-            #rules -> [(rule, cursor_pos, lookahead)]
-            cur_state = Node()
-            for rule, cursor_pos, lookahead in rules:
-                cur_state.addRule(rule, cursor_pos, lookahead)
-            closure(cur_state.rules) #perform closure on the rules
-            ex = existing(cur_state)
-            if(ex): return(ex)
+            #generate state transitions
+            nexts = defaultdict(set)
+            for rule in state.rules:
+                nonterminal, production, lookahead, cursor = rule.nonterminal, rule.production, rule.lookahead, rule.cursor
+                if(cursor >= len(production)):
+                    if(nonterminal == self.start_symbol):
+                        state.addNext(self.eof, "ACCEPT")
+                    continue
+                nexts[production[cursor]].add(StateRule(nonterminal, production, lookahead, cursor + 1))
             
-            #compute nexts
-            transitions = defaultdict(set)
-            for rule, cursor_pos, lookahead in cur_state.rules:
-                if(cursor_pos >= len(rule)): continue
-                transitions[rule[cursor_pos]].add((rule, cursor_pos + 1, lookahead))
+            #for next in nexts:
+            #    print(next)
+            #    for state in nexts[next]:
+            #        print('\t', str(state))
             
-            for token in transitions:
-                cur_state.addNext(token, buildState(transitions[token]))
-            
-            return(cur_state)
         
-        initial_state = buildState(set([((self.start_symbol,) + self.grammar[self.start_symbol][0], 1, self.end)]))
-        print(initial_state)
+            for transition_token in nexts:
+                state.addNext(transition_token, build(nexts[transition_token]))
+            
+            return(state)
+        
+        self.automaton = build(set([
+            StateRule(self.start_symbol, self.grammar[self.start_symbol][0], self.eof, 0)
+        ]))
+    
+    def dumpAutomaton(self):
+        lines = []
+        visited = set()
+        def visit(state):
+            if(id(state) in visited): return
+            visited.add(id(state))
+            if(state == "ACCEPT" or state == None): return
+            line = ""
+            line += '\n'
+            line += ("state id:" + str(id(state)) + "\n")
+            line += ("rules:\n")
+            r = []
+            mappings = defaultdict(set)
+            for rule in state.rules:
+                mappings[(rule.nonterminal, rule.production, rule.cursor)].add(rule.lookahead)
+                #r.append((str(rule) + '\n'))
+            for nt, p, c in mappings:
+                l = str(nt) + " -> "
+                for i, e in enumerate(p):
+                    if(i == c):
+                        l += ". "
+                    l += str(e) + " "
+                l += str(mappings[(nt, p, c)])
+                r.append(l + '\n')
+            line += "".join(sorted(r))
+            line += ("___________\n")
+            line += "nexts:\n"
+            for token in state.next:
+                line += str(token) + " -> " + (state if isinstance(state, str) else str(id(state.next[token]))) + ' \n'
+            lines.append(line)
+            for nex in state.next.values():
+                visit(nex)
+        visit(self.automaton)
+        print("".join(lines))
