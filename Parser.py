@@ -4,21 +4,15 @@ from functools import cache
 from Operators import *
 from Grammar import Grammar
 from Tokenizer import Tokenizer
+from ParseTable import ParseTable
 
 class Parser:
     def __init__(self) -> None:
-        """
         operators = {
             0 : [Add, Sub],
             1 : [Mult, Div, IntDiv]
         }
         operands = [Int, Float, Var]
-        """
-        operators = {
-            0 : [Add],
-            1 : [Mult]
-        }
-        operands = [Int]
         
         
         tokens = []
@@ -29,7 +23,7 @@ class Parser:
         for op in operands:
             tokens.append(op.identifier)
         
-        self.Tokens = Enum('Tokens', ['_{n}'.format(n = i + 1) for i in range(len(tokens))])
+        self.Tokens = Enum('Tokens', ['_{n}'.format(n = i + 1) for i in range(len(tokens))] + ['_eof'])
         
         token_mappings = {}
         for i, ident in enumerate(tokens):
@@ -39,7 +33,7 @@ class Parser:
         
         start_symbol = "S"
 
-        self.grammar = Grammar(self.Tokens, "S")
+        self.grammar = Grammar(self.Tokens, "S", self.Tokens._eof)
         self.grammar.addRule(start_symbol, (prefix + str(num),))
         
         self.rule_mappings = {}
@@ -57,30 +51,11 @@ class Parser:
         self.tokenizer = Tokenizer(*[(ident, token_mappings[ident]) for ident in tokens])
         
         #create automaton
-        self.automaton = self.grammar.buildAutomaton()
+        self.grammar.buildAutomaton()
+
+        #create parsetable
+        self.table = ParseTable(self.grammar.states, "S", self.Tokens._eof)
     
     def tokenize(self, content):
         return(self.tokenizer.tokenize(content))
     
-    def dumpAutomaton(self):
-        visited = []
-        def visit(node):
-            if(node in visited): return
-            visited.append(node)
-            print("__________________")
-            print(str(id(node)) + ":")
-            mappings = defaultdict(set)
-            for rule, cursor, lookahead in node.rules:
-                mappings[(rule, cursor,)].add(lookahead)
-            for rule, cursor in mappings:
-                print(rule[:cursor] + (".", ) + rule[cursor:], lookahead)
-            print("nexts:")
-            for next in node.next:
-                if(node.next[next] == True):
-                    print(next, "ACCEPT")
-                    continue
-                print(next, str(id(node.next[next])))
-            for child in node.next.values():
-                if(child == True): continue
-                visit(child)
-        visit(self.automaton)

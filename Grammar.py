@@ -31,6 +31,7 @@ class Grammar:
         self.firsts = defaultdict(set)
         self.nonterminals = set()
         self.automaton = None
+        self.states = None
     def dump(self):
         for el in self.grammar:
             print(el, self.grammar[el])
@@ -130,7 +131,8 @@ class Grammar:
             StateRule(self.start_symbol, self.grammar[self.start_symbol][0], self.eof, 0)
         ]))
 
-        print("num states:", len(states))
+        self.states = states
+
     
     def dumpAutomaton(self):
         lines = []
