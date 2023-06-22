@@ -1,19 +1,24 @@
 from enum import Enum
-from collections import defaultdict
-from functools import cache
 from Operators import *
-from Grammar import Grammar, StateRule
+from Grammar import Grammar
 from Tokenizer import Tokenizer
 from ParseTable import ParseTable, Reduce, Shift
 
 class Parser:
-    def __init__(self) -> None:
-        operators = {
-            1 : [Add, Sub],
-            0 : [Mult, Div, IntDiv]
-        }
-        operands = [Int, Float, Var]
+    def __init__(self, empty=False) -> None:
+        operators = {}
+        operands = []
+        if(not empty):
+            operators = { #based on order
+                50000 : [Mult, Div, IntDiv],
+                10000 : [Add, Sub]
+            }
+            operands = [Int, Float, Var]
+
+        #add custom operands
         
+        if(len(operands) == 0): raise Exception("Parser must be created with at least 1 operand")
+
         tokens = []
         for p in sorted(operators.keys(), reverse=True):
             for op in sorted(operators[p], key=lambda a : len(a.identifier), reverse=True):
@@ -66,10 +71,10 @@ class Parser:
         return(self.tokenizer.tokenize(content))
     
     def parse(self, content):
+        if(content == ""): raise Exception("Cannot Parse Empty String")
         tokens = self.tokenizer.tokenize(content)
         state_stack = [0] # initial state
         expression_nodes = []
-        used_tokens = []
         for token, image in tokens: #eat one token each iteration
             while((token in self.table.action[state_stack[-1]]) and (isinstance(self.table.action[state_stack[-1]][token], Reduce))):
                 rule = self.table.action[state_stack[-1]][token].rule
@@ -105,8 +110,7 @@ class Parser:
             action = self.table.action[state_stack[-1]][token]
             if(not isinstance(action, Shift)): raise Exception("Attempting to shift without correct shift action")
 
-            expression_nodes.append(token)
-            used_tokens.append(token)
+            expression_nodes.append(image)
             state_stack.append(action.next)
 
         #feed eof

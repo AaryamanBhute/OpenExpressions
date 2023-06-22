@@ -15,5 +15,5 @@ class Tokenizer:
                 tokens.append((token, match_[0]))
                 found = True
                 break
-            if(not found): raise Exception("Parse Error while trying to parse: {c}".format(c=content))
+            if(not found): raise Exception("Tokenization Error while trying to tokenize: {c}".format(c=content))
         return(tokens)
