@@ -5,15 +5,19 @@ from Tokenizer import Tokenizer
 from ParseTable import ParseTable, Reduce, Shift
 
 class Parser:
-    def __init__(self, empty=False) -> None:
+    def __init__(self, empty=False, rev=None) -> None:
         operators = {}
         operands = []
+        rev = set()
+
         if(not empty):
             operators = { #based on order
-                50000 : [Mult, Div, IntDiv],
-                10000 : [Add, Sub]
+                80000 : [Pow],
+                90000 : [Mult, Div, IntDiv],
+                100000 : [Add, Sub]
             }
             operands = [Int, Float, Var]
+            rev = set([Pow])
 
         #add custom operands
         
@@ -26,7 +30,7 @@ class Parser:
         
         for op in operands:
             tokens.append(op.identifier)
-        
+                
         self.Tokens = Enum('Tokens', ['_{n}'.format(n = i + 1) for i in range(len(tokens))] + ['_eof'])
         
         token_mappings = {}
@@ -45,9 +49,11 @@ class Parser:
         for p in sorted(operators.keys(), reverse=True):
             cur, nex = prefix + str(num), prefix + str(num + 1)
             for op in operators[p]:
-                rule = (cur, token_mappings[op.identifier], nex)
-                self.rule_mappings[(cur, rule)] = op #stores production to operation in form: (nt, (prod)) -> op
-                self.grammar.addRule(cur, rule)
+                if(issubclass(op, Binop)):
+                    #allows for reverse binops
+                    rule = (cur, token_mappings[op.identifier], nex) if op not in rev else (nex, token_mappings[op.identifier], cur)
+                    self.rule_mappings[(cur, rule)] = op #stores production to operation in form: (nt, (prod)) -> op
+                    self.grammar.addRule(cur, rule)
             rule = (nex,)
             self.grammar.addRule(cur, rule)
             self.rule_mappings[(cur, rule)] = None #no new op created
@@ -73,6 +79,7 @@ class Parser:
     def parse(self, content):
         if(content == ""): raise Exception("Cannot Parse Empty String")
         tokens = self.tokenizer.tokenize(content)
+        print(tokens)
         state_stack = [0] # initial state
         expression_nodes = []
         for token, image in tokens: #eat one token each iteration

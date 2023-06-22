@@ -76,3 +76,10 @@ class IntDiv(Binop):
         self.left, self.right = l, r
     def eval(self, context=None):
         return(self.left.eval(context) // self.right.eval(context))
+
+class Pow(Binop):
+    identifier = r"\*\*"
+    def __init__(self, l, r) -> None:
+        self.left, self.right = l, r
+    def eval(self, context):
+        return(self.left.eval(context) ** self.right.eval(context))
