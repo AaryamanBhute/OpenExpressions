@@ -26,7 +26,7 @@ class ParseTable:
             #actions
             for rule in state.rules:
                 if(rule.cursor == len(rule.production) and rule.nonterminal == start_symbol):
-                    actions[eof_token] = True #accept
+                    actions[eof_token] = "ACCEPT" #accept
                 elif(rule.cursor == len(rule.production)):
                     if(rule.lookahead in actions): raise Exception("Conflict in Parse Table")
                     actions[rule.lookahead] = Reduce(rule)
