@@ -15,7 +15,7 @@ class Int(Operand):
         return(str(self.val))
 
 class Float(Operand):
-    identifier = r"\d*.\d+"
+    identifier = r"\d*\.\d+"
     def __init__(self, v) -> None:
         self.val = float(v)
     def eval(self, context=None):
@@ -35,12 +35,12 @@ class Var(Operand):
         return(str(self.image))
 
 class Operator(ABC):
-    pass
-
-class Binop(Operator):
     @abstractmethod
     def eval(self):
         pass
+
+class Binop(Operator):
+    pass
 
 class Add(Binop):
     identifier = r"\+"
@@ -83,3 +83,32 @@ class Pow(Binop):
         self.left, self.right = l, r
     def eval(self, context):
         return(self.left.eval(context) ** self.right.eval(context))
+
+class UnOp(Operator):
+    pass
+
+class Neg(UnOp):
+    identifier = r"-"
+    def __init__(self, e) -> None:
+        self.expr = e
+    def eval(self, context):
+        return(-self.expr.eval(context))
+
+class WrapOp(Operator):
+    pass
+
+class Paren(WrapOp):
+    left_ident = r"\("
+    right_ident = r"\)"
+    def __init__(self, e) -> None:
+        self.expr = e
+    def eval(self, context):
+        return(self.expr.eval(context))
+
+class Abs(WrapOp):
+    left_ident = r"\|"
+    right_ident = r"\|"
+    def __init__(self, e) -> None:
+        self.expr = e
+    def eval(self, context):
+        return(abs(self.expr.eval(context)))

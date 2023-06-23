@@ -12,9 +12,12 @@ class Parser:
 
         if(not empty):
             operators = { #based on order
-                80000 : [Pow],
+                -1 : [Paren, Abs], #wrapops
+                70000 : [Pow],
+                80000 : [Neg],
                 90000 : [Mult, Div, IntDiv],
-                100000 : [Add, Sub]
+                100000 : [Add, Sub],
+                
             }
             operands = [Int, Float, Var]
             rev = set([Pow])
@@ -23,10 +26,19 @@ class Parser:
         
         if(len(operands) == 0): raise Exception("Parser must be created with at least 1 operand")
 
-        tokens = []
-        for p in sorted(operators.keys(), reverse=True):
-            for op in sorted(operators[p], key=lambda a : len(a.identifier), reverse=True):
-                tokens.append(op.identifier)
+        tokens = set()
+
+        for p in operators:
+            for op in operators[p]:
+                if(issubclass(op, Binop)):
+                    tokens.add(op.identifier)
+                if(issubclass(op, WrapOp)):
+                    tokens.add(op.left_ident)
+                    tokens.add(op.right_ident)
+                if(issubclass(op, UnOp)):
+                    tokens.add(op.identifier)
+        tokens = list(tokens)
+        tokens.sort(key=lambda a : len(a), reverse=True) #ensure that operators like ** are not interpreted as *, *
         
         for op in operands:
             tokens.append(op.identifier)
@@ -36,8 +48,9 @@ class Parser:
         token_mappings = {}
         for i, ident in enumerate(tokens):
             token_mappings[ident] = self.Tokens(i + 1)
-
+        
         prefix, num = "E", 1
+        first_rule = (prefix + str(num))
         start_symbol = "S"
         
         self.eof_token = self.Tokens._eof
@@ -49,11 +62,17 @@ class Parser:
         for p in sorted(operators.keys(), reverse=True):
             cur, nex = prefix + str(num), prefix + str(num + 1)
             for op in operators[p]:
+                rule = None
                 if(issubclass(op, Binop)):
                     #allows for reverse binops
                     rule = (cur, token_mappings[op.identifier], nex) if op not in rev else (nex, token_mappings[op.identifier], cur)
-                    self.rule_mappings[(cur, rule)] = op #stores production to operation in form: (nt, (prod)) -> op
-                    self.grammar.addRule(cur, rule)
+                elif(issubclass(op, WrapOp)):
+                    rule = (token_mappings[op.left_ident], first_rule, token_mappings[op.right_ident])
+                elif(issubclass(op, UnOp)):
+                    rule = (token_mappings[op.identifier], cur)
+                if(rule == None): raise Exception("Attempting to add null rule to grammer")
+                self.rule_mappings[(cur, rule)] = op #stores production to operation in form: (nt, (prod)) -> op
+                self.grammar.addRule(cur, rule)
             rule = (nex,)
             self.grammar.addRule(cur, rule)
             self.rule_mappings[(cur, rule)] = None #no new op created
@@ -79,7 +98,6 @@ class Parser:
     def parse(self, content):
         if(content == ""): raise Exception("Cannot Parse Empty String")
         tokens = self.tokenizer.tokenize(content)
-        print(tokens)
         state_stack = [0] # initial state
         expression_nodes = []
         for token, image in tokens: #eat one token each iteration
@@ -105,6 +123,10 @@ class Parser:
                 elif(issubclass(op, Binop)): #eats 3 things
                     #manage expression composition
                     expression_nodes.append(op(eaten_nodes[0], eaten_nodes[2])) # 0(left) 1(op) 2(right)
+                elif(issubclass(op, WrapOp)):
+                    expression_nodes.append(op(eaten_nodes[1])) #0(left_ident) 1(expr) 2(right_ident)
+                elif(issubclass(op, UnOp)):
+                    expression_nodes.append(op(eaten_nodes[1])) #0(ident) 1(expr)
                 else:
                     raise Exception("Unkown operator type")
                 
@@ -146,6 +168,10 @@ class Parser:
             elif(issubclass(op, Binop)): #eats 3 things
                 #manage expression composition
                 expression_nodes.append(op(eaten_nodes[0], eaten_nodes[2])) # 0(left) 1(op) 2(right)
+            elif(issubclass(op, WrapOp)):
+                expression_nodes.append(op(eaten_nodes[1])) #0(left_ident) 1(expr) 2(right_ident)
+            elif(issubclass(op, UnOp)):
+                expression_nodes.append(op(eaten_nodes[1])) #0(ident) 1(expr)
             else:
                 raise Exception("Unkown operator type")
                 

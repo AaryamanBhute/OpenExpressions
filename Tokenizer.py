@@ -5,6 +5,7 @@ class Tokenizer:
         self.terminals = terminals
     def tokenize(self, content):
         tokens = []
+        content = content.rstrip()
         while(content):
             content = content.lstrip()
             found = False
