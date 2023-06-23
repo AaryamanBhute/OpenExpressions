@@ -41,9 +41,7 @@ class ParseTable:
                 if(transitions not in state.next): raise Exception("Automaton does not contain necessary goto")
                 gotos[transitions] = state_num[id(state.next[transitions])]
     def dump(self):
-        for i, state in enumerate(self.states):
-            print(i, ":", state)
         for i in range(self.count):
-            print("State ", i ,":")
-            print("\tactions:", self.action[i])
-            print("\tgotos:", self.goto[i])
+            print(i)
+            print('\t', self.action[i])
+            print('\t', self.goto[i])

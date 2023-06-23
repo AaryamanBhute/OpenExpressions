@@ -1,8 +1,9 @@
 import re
 
 class Tokenizer:
-    def __init__(self, *terminals):
+    def __init__(self, terminals, op_tokens):
         self.terminals = terminals
+        self.op_tokens = op_tokens
     def tokenize(self, content):
         tokens = []
         content = content.rstrip()
@@ -10,6 +11,14 @@ class Tokenizer:
             content = content.lstrip()
             found = False
             for pattern, token in sorted(self.terminals, key=lambda a : len(a[0]), reverse=True):
+                if((pattern, token) in self.op_tokens): continue
+                match_ = re.match((pattern), content)
+                if(not match_): continue
+                content = content[match_.end():]
+                tokens.append((token, match_[0]))
+                found = True
+                break
+            for pattern, token in self.op_tokens:
                 match_ = re.match((pattern), content)
                 if(not match_): continue
                 content = content[match_.end():]

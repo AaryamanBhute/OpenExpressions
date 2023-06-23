@@ -12,7 +12,7 @@ class Parser:
 
         if(not empty):
             operators = { #based on order
-                -1 : [Paren, Abs], #wrapops
+                -1 : [Paren, Abs, Sigma, Pi], #wrapops and PolyOps
                 70000 : [Pow],
                 80000 : [Neg],
                 90000 : [Mult, Div, IntDiv],
@@ -37,11 +37,18 @@ class Parser:
                     tokens.add(op.right_ident)
                 if(issubclass(op, UnOp)):
                     tokens.add(op.identifier)
+                if(issubclass(op, PolyOp)):
+                    tokens.add(r"\(")
+                    tokens.add(r"\)")
+                    tokens.add(r",")
+                    tokens.add(op.identifier)
         tokens = list(tokens)
         tokens.sort(key=lambda a : len(a), reverse=True) #ensure that operators like ** are not interpreted as *, *
         
+        operand_tokens = set()
         for op in operands:
             tokens.append(op.identifier)
+            operand_tokens.add(op.identifier)
                 
         self.Tokens = Enum('Tokens', ['_{n}'.format(n = i + 1) for i in range(len(tokens))] + ['_eof'])
         
@@ -70,6 +77,13 @@ class Parser:
                     rule = (token_mappings[op.left_ident], first_rule, token_mappings[op.right_ident])
                 elif(issubclass(op, UnOp)):
                     rule = (token_mappings[op.identifier], cur)
+                elif(issubclass(op, PolyOp)):
+                    rule = (token_mappings[op.identifier], token_mappings[r"\("])
+                    for i in range(op.num_ops):
+                        if(i > 0):
+                            rule += (token_mappings[r","],)
+                        rule += (first_rule,)
+                    rule += (token_mappings[r"\)"],)
                 if(rule == None): raise Exception("Attempting to add null rule to grammer")
                 self.rule_mappings[(cur, rule)] = op #stores production to operation in form: (nt, (prod)) -> op
                 self.grammar.addRule(cur, rule)
@@ -84,10 +98,11 @@ class Parser:
             self.rule_mappings[(cur, rule)] = op
         
         #prepare tokenizer
-        self.tokenizer = Tokenizer(*[(ident, token_mappings[ident]) for ident in tokens])
+        self.tokenizer = Tokenizer([(ident, token_mappings[ident]) for ident in tokens], [(ident, token_mappings[ident]) for ident in operand_tokens])
         
         #create automaton
         self.grammar.buildAutomaton()
+        #print(self.grammar.dump())
 
         #create parsetable
         self.table = ParseTable(self.grammar.states, start_symbol, self.eof_token)
@@ -99,6 +114,7 @@ class Parser:
         if(content == ""): raise Exception("Cannot Parse Empty String")
         tokens = self.tokenizer.tokenize(content)
         state_stack = [0] # initial state
+        used = []
         expression_nodes = []
         for token, image in tokens: #eat one token each iteration
             while((token in self.table.action[state_stack[-1]]) and (isinstance(self.table.action[state_stack[-1]][token], Reduce))):
@@ -127,6 +143,12 @@ class Parser:
                     expression_nodes.append(op(eaten_nodes[1])) #0(left_ident) 1(expr) 2(right_ident)
                 elif(issubclass(op, UnOp)):
                     expression_nodes.append(op(eaten_nodes[1])) #0(ident) 1(expr)
+                elif(issubclass(op, PolyOp)):
+                    #0(ident) #1(open paren) #2(param 1) #3(,) #4(param2) ...
+                    params = []
+                    for i in range(2, len(eaten_nodes), 2):
+                        params.append(eaten_nodes[i])
+                    expression_nodes.append(op(*params))
                 else:
                     raise Exception("Unkown operator type")
                 
@@ -140,6 +162,7 @@ class Parser:
             if(not isinstance(action, Shift)): raise Exception("Attempting to shift without correct shift action")
 
             expression_nodes.append(image)
+            used.append(image)
             state_stack.append(action.next)
 
         #feed eof
@@ -172,6 +195,12 @@ class Parser:
                 expression_nodes.append(op(eaten_nodes[1])) #0(left_ident) 1(expr) 2(right_ident)
             elif(issubclass(op, UnOp)):
                 expression_nodes.append(op(eaten_nodes[1])) #0(ident) 1(expr)
+            elif(issubclass(op, PolyOp)):
+                #0(ident) #1(open paren) #2(param 1) #3(,) #4(param2) ...
+                params = []
+                for i in range(2, len(eaten_nodes), 2):
+                    params.append(eaten_nodes[i])
+                expression_nodes.append(op(*params))
             else:
                 raise Exception("Unkown operator type")
                 

@@ -11,7 +11,6 @@ def print_node(node, num_dashes=0):
 
 if __name__ == "__main__":
     parser = Parser()
-    #parser.grammar.dump()
-    content = "-| ((2 + (2 ** 2)) * 8) + 3 * -2  |"
+    content = "PROD (a, 1, 5, a ** b) + 2"
     expression = parser.parse(content)
-    print(expression.eval({"a" : 2, "b": 3}))
+    print(expression.eval({"a" : 2, "b": 2}))

@@ -112,3 +112,64 @@ class Abs(WrapOp):
         self.expr = e
     def eval(self, context):
         return(abs(self.expr.eval(context)))
+
+class PolyOp(Operator):
+    pass
+
+class Sigma(PolyOp):
+    num_ops = 4
+    identifier = r"SUM"
+    
+    def __init__(self, v, l, u, e) -> None:
+        self.var = v
+        self.lower = l
+        self.upper = u
+        self.expr = e
+    
+    def eval(self, context):
+
+        if(not isinstance(self.var, Var)): raise Exception("Not a valid variable to define")
+        
+        lower_bound = self.lower.eval(context)
+        if(int(lower_bound) != lower_bound): raise Exception("Lower Bound on SIGMA Operation is not an integer")
+        lower_bound = int(lower_bound)
+        upper_bound = self.upper.eval(context)
+        if(int(upper_bound) != upper_bound): raise Exception("Upper Bound on SIGMA Operation is not an integer")
+        upper_bound = int(upper_bound)
+
+        s = 0
+        sub_context = context.copy()
+        for i in range(lower_bound, upper_bound + 1):
+            sub_context[self.var.image] = i
+            s += self.expr.eval(sub_context)
+        return(s)
+
+class Pi(PolyOp):
+    num_ops = 4
+    identifier = r"PROD"
+    
+    def __init__(self, v, l, u, e) -> None:
+        self.var = v
+        self.lower = l
+        self.upper = u
+        self.expr = e
+    
+    def eval(self, context):
+
+        if(not isinstance(self.var, Var)): raise Exception("Not a valid variable to define")
+        
+        lower_bound = self.lower.eval(context)
+        if(int(lower_bound) != lower_bound): raise Exception("Lower Bound on PI Operation is not an integer")
+        lower_bound = int(lower_bound)
+        upper_bound = self.upper.eval(context)
+        if(int(upper_bound) != upper_bound): raise Exception("Upper Bound on PI Operation is not an integer")
+        upper_bound = int(upper_bound)
+
+        if(upper_bound < lower_bound): raise Exception("Upper Bound is smaller than Lower Bound on PI Operation")
+
+        s = 1
+        sub_context = context.copy()
+        for i in range(lower_bound, upper_bound + 1):
+            sub_context[self.var.image] = i
+            s *= self.expr.eval(sub_context)
+        return(s)
