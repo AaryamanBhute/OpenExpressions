@@ -10,7 +10,7 @@ def print_node(node, num_dashes=0):
         print_node(node.expr)
 
 if __name__ == "__main__":
-    parser = Parser(mode=1)
-    content = "1 ^ 1"
+    parser = Parser(mode=0)
+    content = "1 + 1"
     expression = parser.parse(content)
     print(expression.eval({"a" : 2, "b": 2}))
