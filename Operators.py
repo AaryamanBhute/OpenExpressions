@@ -5,8 +5,17 @@ class Operand(ABC):
     def eval(self):
         pass
 
+
 class Int(Operand):
     identifier = r"\d+"
+    def __init__(self, v) -> None:
+        self.val = int(v)
+    def eval(self, context=None):
+        return(self.val)
+    def __str__(self) -> str:
+        return(str(self.val))
+class BoolVal(Operand):
+    identifier = r"(0 | 1)"
     def __init__(self, v) -> None:
         self.val = int(v)
     def eval(self, context=None):
@@ -31,6 +40,21 @@ class Var(Operand):
        if(context == None): raise Exception("Attempting to evaluate variable without context")
        if(self.image not in context): raise Exception("Attempting to evaluate variable with no definition in context")
        return(context[self.image])
+    def __str__(self) -> str:
+        return(str(self.image))
+
+class BoolVar(Operand):
+    identifier = r"[a-zA-Z]\w*"
+    def __init__(self, i) -> None:
+        self.image = str(i)
+    def eval(self, context=None):
+       if(context == None): raise Exception("Attempting to evaluate variable without context")
+       if(self.image not in context): raise Exception("Attempting to evaluate variable with no definition in context")
+       val = context[self.image]
+       if(int(val) != val): raise Exception("Boolean Var must be 0 or 1")
+       val = int(val)
+       if(val > 1 or val < 0): raise Exception("Boolean Var must be 0 or 1")
+       return(val)
     def __str__(self) -> str:
         return(str(self.image))
 
@@ -76,6 +100,34 @@ class IntDiv(Binop):
         self.left, self.right = l, r
     def eval(self, context=None):
         return(self.left.eval(context) // self.right.eval(context))
+
+class BitAnd(Binop):
+    identifier = r"&"
+    def __init__(self, l, r) -> None:
+        self.left, self.right = l, r
+    def eval(self, context=None):
+        return(self.left.eval(context) & self.right.eval(context))
+
+class BitOr(Binop):
+    identifier = r"\|"
+    def __init__(self, l, r) -> None:
+        self.left, self.right = l, r
+    def eval(self, context=None):
+        return(self.left.eval(context) | self.right.eval(context))
+
+class BitXOr(Binop):
+    identifier = r"\^"
+    def __init__(self, l, r) -> None:
+        self.left, self.right = l, r
+    def eval(self, context=None):
+        return(self.left.eval(context) ^ self.right.eval(context))
+    
+class Mod(Binop):
+    identifier = r"%"
+    def __init__(self, l, r) -> None:
+        self.left, self.right = l, r
+    def eval(self, context=None):
+        return(self.left.eval(context) % self.right.eval(context))
 
 class Pow(Binop):
     identifier = r"\*\*"

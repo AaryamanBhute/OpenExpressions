@@ -5,22 +5,29 @@ from Tokenizer import Tokenizer
 from ParseTable import ParseTable, Reduce, Shift
 
 class Parser:
-    def __init__(self, empty=False, rev=None) -> None:
+    def __init__(self, mode=0, rev=None) -> None:
         operators = {}
         operands = []
         rev = set()
 
-        if(not empty):
+        if(mode == 0):
             operators = { #based on order
                 -1 : [Paren, Abs, Sigma, Pi], #WrapOps and PolyOps
                 70000 : [Pow],
                 80000 : [Neg],
-                90000 : [Mult, Div, IntDiv, BitInv],
+                90000 : [Mult, Div, IntDiv, Mod],
                 100000 : [Add, Sub],
                 
             }
             operands = [Int, Float, Var]
             rev = set([Pow])
+        elif(mode == 1):
+            operators = { #based on order
+                -1 : [Paren], #WrapOps and PolyOps
+                80000 : [BitInv],
+                90000 : [BitAnd, BitOr, BitXOr],                
+            }
+            operands = [Int, BoolVar]
 
         #add custom operands
         
