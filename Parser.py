@@ -12,10 +12,10 @@ class Parser:
 
         if(not empty):
             operators = { #based on order
-                -1 : [Paren, Abs, Sigma, Pi], #wrapops and PolyOps
+                -1 : [Paren, Abs, Sigma, Pi], #WrapOps and PolyOps
                 70000 : [Pow],
                 80000 : [Neg],
-                90000 : [Mult, Div, IntDiv],
+                90000 : [Mult, Div, IntDiv, BitInv],
                 100000 : [Add, Sub],
                 
             }

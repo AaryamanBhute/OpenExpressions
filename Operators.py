@@ -94,6 +94,13 @@ class Neg(UnOp):
     def eval(self, context):
         return(-self.expr.eval(context))
 
+class BitInv(UnOp):
+    identifier = r"~"
+    def __init__(self, e) -> None:
+        self.expr = e
+    def eval(self, context):
+        return(~self.expr.eval(context))
+
 class WrapOp(Operator):
     pass
 
