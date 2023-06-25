@@ -5,7 +5,7 @@ class Operand(ABC):
     def eval(self):
         pass
 class Int(Operand):
-    identifier = r"\d+"
+    identifier = r"\d+(?!\.)"
     def __init__(self, v) -> None:
         self.val = int(v)
     def eval(self, context=None):
@@ -131,8 +131,11 @@ class Pow(Binop):
     identifier = r"\*\*"
     def __init__(self, l, r) -> None:
         self.left, self.right = l, r
-    def eval(self, context):
-        return(self.left.eval(context) ** self.right.eval(context))
+    def eval(self, context=None):
+        left_val = self.left.eval(context)
+        right_val = self.right.eval(context)
+        negative = left_val < 0
+        return(-(abs(left_val) ** right_val) if negative else left_val ** right_val)
 
 class UnOp(Operator):
     pass
@@ -141,10 +144,10 @@ class Neg(UnOp):
     identifier = r"-"
     def __init__(self, e) -> None:
         self.expr = e
-    def eval(self, context):
+    def eval(self, context=None):
         return(-self.expr.eval(context))
 
-class BitInv(UnOp):
+class Not(UnOp):
     identifier = r"~"
     def __init__(self, e) -> None:
         self.expr = e

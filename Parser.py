@@ -13,19 +13,20 @@ class Parser:
         if(mode == "math"):
             operators = { #based on order
                 -1 : [Paren, Abs, Sigma, Pi], #WrapOps and PolyOps
-                70000 : [Pow],
-                80000 : [Neg],
+                70000 : [Neg],
+                80000 : [Pow],
                 90000 : [Mult, Div, IntDiv, Mod],
                 100000 : [Add, Sub],
-                
             }
             operands = [Int, Float, Var]
             rev = set([Pow])
         elif(mode == "boolean"):
             operators = { #based on order
                 -1 : [Paren], #WrapOps and PolyOps
-                80000 : [BitInv],
-                90000 : [BitAnd, BitOr, BitXOr],                
+                70000 : [Not],
+                80000 : [BitXOr],
+                90000 : [BitAnd],
+                100000 : [BitOr]
             }
             operands = [Int, BoolVar]
         elif(mode == "empty"):
@@ -80,6 +81,8 @@ class Parser:
         tokens = list(tokens)
         tokens.sort(key=lambda a : len(a), reverse=True) #ensure that operators like ** are not interpreted as *, *
         
+        #print([(i + 1, j) for i, j in enumerate(tokens)])
+
         operand_tokens = set()
         for op in operands:
             tokens.append(op.identifier)
@@ -148,6 +151,7 @@ class Parser:
     def parse(self, content):
         if(content == ""): raise Exception("Cannot Parse Empty String")
         tokens = self.tokenizer.tokenize(content)
+        #print(tokens)
         state_stack = [0] # initial state
         used = []
         expression_nodes = []
