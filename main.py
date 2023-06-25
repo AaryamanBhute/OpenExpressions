@@ -23,6 +23,6 @@ if __name__ == "__main__":
     ), custom_operands=(
         Int, Float, Var
     ))
-    content = "1 + 1"
+    content = "(1 + 1 ** 2) + 4 ** 3"
     expression = parser.parse(content)
     print(expression.eval({"a" : 2, "b": 2}))

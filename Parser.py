@@ -21,7 +21,7 @@ class Parser:
             }
             operands = [Int, Float, Var]
             rev = set([Pow])
-        elif(mode == "bit"):
+        elif(mode == "boolean"):
             operators = { #based on order
                 -1 : [Paren], #WrapOps and PolyOps
                 80000 : [BitInv],
