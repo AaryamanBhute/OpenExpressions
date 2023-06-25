@@ -5,12 +5,12 @@ from Tokenizer import Tokenizer
 from ParseTable import ParseTable, Reduce, Shift
 
 class Parser:
-    def __init__(self, mode=0, rev=None) -> None:
+    def __init__(self, mode="math", custom_operators=None, custom_operands=None) -> None:
         operators = {}
         operands = []
         rev = set()
 
-        if(mode == 0):
+        if(mode == "math"):
             operators = { #based on order
                 -1 : [Paren, Abs, Sigma, Pi], #WrapOps and PolyOps
                 70000 : [Pow],
@@ -21,15 +21,43 @@ class Parser:
             }
             operands = [Int, Float, Var]
             rev = set([Pow])
-        elif(mode == 1):
+        elif(mode == "bit"):
             operators = { #based on order
                 -1 : [Paren], #WrapOps and PolyOps
                 80000 : [BitInv],
                 90000 : [BitAnd, BitOr, BitXOr],                
             }
             operands = [Int, BoolVar]
+        elif(mode == "empty"):
+            pass
+        else: raise Exception("Invalid Parser Mode")
 
         #add custom operands
+        if(custom_operators != None):
+            for info in custom_operators:
+                op = None
+                if(isinstance(info, tuple)):
+                    op = info[0]
+                else:
+                    op = info
+                if(issubclass(op, Binop)):
+                    order, reversed = info[1], info[2]
+                    if(order not in operators): operators[order] = []
+                    operators[order].append(op)
+                    if(reversed): rev.add(op)
+                elif(issubclass(op, WrapOp) or issubclass(op, PolyOp)):
+                    if(-1 not in operators): operators[-1] = []
+                    operators[-1].append(op)
+                elif(issubclass(op, UnOp)):
+                    order = info[1]
+                    if(order not in operators): operators[order] = []
+                    operators[order].append(op)
+                else: raise Exception("Invalid Operator Passed In")
+        if(custom_operands != None):
+            for op in custom_operands:
+                if(not issubclass(op, Operand)): raise Exception("Invalid Operand Passed In")
+                operands.append(op)
+        
         
         if(len(operands) == 0): raise Exception("Parser must be created with at least 1 operand")
 

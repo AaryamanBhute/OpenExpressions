@@ -4,8 +4,6 @@ class Operand(ABC):
     @abstractmethod
     def eval(self):
         pass
-
-
 class Int(Operand):
     identifier = r"\d+"
     def __init__(self, v) -> None:
