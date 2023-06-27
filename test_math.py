@@ -3,6 +3,9 @@ from Parser import Parser
 def basic_test(parser, expr):
     assert(parser.parse(expr).eval() == eval(expr))
 
+def context_test(parser, expr, context):
+    assert(parser.parse(expr).eval(context) == eval(expr, context))
+
 def test_operations():
     # prepare parser with default settings (math mode)
     parser = Parser()
@@ -42,10 +45,16 @@ def test_order_of_operations():
     basic_test(parser, "-1 ** 6")
     basic_test(parser, "-1 ** -1")
     basic_test(parser, "-4 ** -1 ** -2 ** -8")
-    
+    basic_test(parser, "(-1)**2")
+
     parser = Parser(mode="boolean")
     basic_test(parser, "1 | 1 & 0 ")
     basic_test(parser, "1 | 1 & 0 ^ 1")
     basic_test(parser, "1 | 1 & 0 ^ 1 & 1 & 1 ^ 1 | 0 | 0 & 0 ^ 0")
     basic_test(parser, "1 | 1 & (0 ^ 1) & 1 & (1 ^ 1 | 0 | 0 & 0) ^ 0")
     basic_test(parser, "1 | (1 & 0 ^ 1 & 1 & 1 ^ 1 | 0 | 0 & 0 ^ 0)")
+
+def test_context():
+    parser = Parser()
+    context_test(parser, "a + b ** c", {'a' : 1, 'b' : 5, 'c' : 3})
+    context_test(parser, "b ** c", {'a' : 1, 'b' : -5, 'c' : 4})

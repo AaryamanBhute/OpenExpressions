@@ -31,6 +31,7 @@ class Float(Operand):
         return(str(self.val))
 
 class Var(Operand):
+    negation_inclusive = True
     identifier = r"[a-zA-Z]\w*"
     def __init__(self, i) -> None:
         self.image = str(i)
@@ -134,8 +135,8 @@ class Pow(Binop):
     def eval(self, context=None):
         left_val = self.left.eval(context)
         right_val = self.right.eval(context)
-        negative = left_val < 0
-        return(-(abs(left_val) ** right_val) if negative else left_val ** right_val)
+        if(hasattr(self.left.__class__, 'negation_inclusive') and self.left.__class__.negation_inclusive): return(left_val ** right_val)
+        return(-(abs(left_val) ** right_val) if left_val < 0 else left_val ** right_val)
 
 class UnOp(Operator):
     pass
@@ -158,6 +159,7 @@ class WrapOp(Operator):
     pass
 
 class Paren(WrapOp):
+    negation_inclusive = True
     left_ident = r"\("
     right_ident = r"\)"
     def __init__(self, e) -> None:
@@ -166,6 +168,7 @@ class Paren(WrapOp):
         return(self.expr.eval(context))
 
 class Abs(WrapOp):
+    negation_inclusive = True
     left_ident = r"\|"
     right_ident = r"\|"
     def __init__(self, e) -> None:
@@ -177,6 +180,7 @@ class PolyOp(Operator):
     pass
 
 class Sigma(PolyOp):
+    negation_inclusive = True
     num_ops = 4
     identifier = r"SUM"
     
@@ -205,6 +209,7 @@ class Sigma(PolyOp):
         return(s)
 
 class Pi(PolyOp):
+    negation_inclusive = True
     num_ops = 4
     identifier = r"PROD"
     
