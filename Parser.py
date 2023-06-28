@@ -12,7 +12,7 @@ class Parser:
 
         if(mode == "math"):
             operators = { #based on order
-                -1 : [Paren, Abs, Sigma, Pi], #WrapOps and PolyOps
+                -1 : [Paren, Abs, Sum, Prod], #WrapOps and PolyOps
                 70000 : [Neg],
                 80000 : [Pow],
                 90000 : [Mult, Div, IntDiv, Mod],
@@ -41,7 +41,7 @@ class Parser:
                     op = info[0]
                 else:
                     op = info
-                if(issubclass(op, Binop)):
+                if(issubclass(op, BinOp)):
                     order, reversed = info[1], info[2]
                     if(order not in operators): operators[order] = []
                     operators[order].append(op)
@@ -66,11 +66,11 @@ class Parser:
 
         for p in operators:
             for op in operators[p]:
-                if(issubclass(op, Binop)):
+                if(issubclass(op, BinOp)):
                     tokens.add(op.identifier)
                 if(issubclass(op, WrapOp)):
-                    tokens.add(op.left_ident)
-                    tokens.add(op.right_ident)
+                    tokens.add(op.left_identifier)
+                    tokens.add(op.right_identifier)
                 if(issubclass(op, UnOp)):
                     tokens.add(op.identifier)
                 if(issubclass(op, PolyOp)):
@@ -108,16 +108,16 @@ class Parser:
             cur, nex = prefix + str(num), prefix + str(num + 1)
             for op in operators[p]:
                 rule = None
-                if(issubclass(op, Binop)):
+                if(issubclass(op, BinOp)):
                     #allows for reverse binops
                     rule = (cur, token_mappings[op.identifier], nex) if op not in rev else (nex, token_mappings[op.identifier], cur)
                 elif(issubclass(op, WrapOp)):
-                    rule = (token_mappings[op.left_ident], first_rule, token_mappings[op.right_ident])
+                    rule = (token_mappings[op.left_identifier], first_rule, token_mappings[op.right_identifier])
                 elif(issubclass(op, UnOp)):
                     rule = (token_mappings[op.identifier], cur)
                 elif(issubclass(op, PolyOp)):
                     rule = (token_mappings[op.identifier], token_mappings[r"\("])
-                    for i in range(op.num_ops):
+                    for i in range(op.num_fields):
                         if(i > 0):
                             rule += (token_mappings[r","],)
                         rule += (first_rule,)
@@ -175,11 +175,11 @@ class Parser:
                     expression_nodes += eaten_nodes
                 elif(issubclass(op, Operand)):
                     expression_nodes.append(op(eaten_nodes[0])) # 0(raw value -> int, float, var...)
-                elif(issubclass(op, Binop)): #eats 3 things
+                elif(issubclass(op, BinOp)): #eats 3 things
                     #manage expression composition
                     expression_nodes.append(op(eaten_nodes[0], eaten_nodes[2])) # 0(left) 1(op) 2(right)
                 elif(issubclass(op, WrapOp)):
-                    expression_nodes.append(op(eaten_nodes[1])) #0(left_ident) 1(expr) 2(right_ident)
+                    expression_nodes.append(op(eaten_nodes[1])) #0(left_identifier) 1(expr) 2(right_identifier)
                 elif(issubclass(op, UnOp)):
                     expression_nodes.append(op(eaten_nodes[1])) #0(ident) 1(expr)
                 elif(issubclass(op, PolyOp)):
@@ -227,11 +227,11 @@ class Parser:
                 expression_nodes += eaten_nodes
             elif(issubclass(op, Operand)):
                 expression_nodes.append(op(eaten_nodes[0])) # 0(raw value -> int, float, var...)
-            elif(issubclass(op, Binop)): #eats 3 things
+            elif(issubclass(op, BinOp)): #eats 3 things
                 #manage expression composition
                 expression_nodes.append(op(eaten_nodes[0], eaten_nodes[2])) # 0(left) 1(op) 2(right)
             elif(issubclass(op, WrapOp)):
-                expression_nodes.append(op(eaten_nodes[1])) #0(left_ident) 1(expr) 2(right_ident)
+                expression_nodes.append(op(eaten_nodes[1])) #0(left_identifier) 1(expr) 2(right_identifier)
             elif(issubclass(op, UnOp)):
                 expression_nodes.append(op(eaten_nodes[1])) #0(ident) 1(expr)
             elif(issubclass(op, PolyOp)):
