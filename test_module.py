@@ -1,5 +1,6 @@
 from Parser import Parser
-from Operators import *
+from ExpressionNodes import *
+import random
 
 def basic_test(parser, expr):
     assert(parser.parse(expr).eval() == eval(expr))
@@ -76,11 +77,58 @@ def test_context():
     context_test(parser, "a | (1 & 0 ^ b & 1 & 1 ^ 1 | c | 0 & d ^ 0)", {'a': 1, 'b':1 , 'c': 0, 'd': 1})
 
 def test_custom_ops():
-    class custom_unop():
-        pass
-    class custom_binop(BinOp):
-        pass
+    class custom_operand_letter(Operand):
+        identifier = r"[a-zA-Z]"
+        def __init__(self, v) -> None:
+            super().__init__(str(v))
+        def eval(self, context=None):
+            return(self.val)
+    class custom_operand_digit(Operand):
+        identifier = r"\d"
+        def __init__(self, v) -> None:
+            super().__init__(int(v))
+        def eval(self, context=None):
+            return(self.val)
+    class custom_unop(UnOp):
+        identifier = r"_"
+        def __init__(self, e) -> None:
+            super().__init__(e)
+        def eval(self, context=None):
+            return(ord(self.expr.eval()) - ord('a'))
+    class custom_binop_mult(BinOp):
+        identifier = r"\*"
+        def __init__(self, l, r) -> None:
+            super().__init__(l, r)
+        def eval(self, context=None):
+            return(self.left.eval(context) * self.right.eval(context))
+    class custom_binop_add(BinOp):
+        identifier = r"\+"
+        def __init__(self, l, r) -> None:
+            super().__init__(l, r)
+        def eval(self, context=None):
+            return(self.left.eval(context) + self.right.eval(context))
     class custom_wrapop(WrapOp):
-        pass
+        left_identifier = r"\|"
+        right_identifier = r"\|"
+        def __init__(self, e) -> None:
+            super().__init__(e)
+        def eval(self, context=None):
+            return(len(self.expr.eval(context)))
     class custom_polyop(PolyOp):
-        pass
+        num_fields = 2
+        identifier = r"RAND"
+        
+        def __init__(self, l, u) -> None:
+            super().__init__(l, u)
+        
+        def eval(self, context=None):
+            return(random.randint(self.left.eval(context), self.right.eval(context)))
+
+    parser = Parser(mode="empty",
+                    custom_operators=((custom_binop_add, 100, False), (custom_binop_mult, 10, False), (custom_unop, 0), custom_wrapop, custom_polyop),
+                    custom_operands=(custom_operand_letter, custom_operand_digit))
+    
+    assert(parser.parse("a * 3 + b * 2").eval() == "aaabb")
+    assert(parser.parse("|a * 3 + b * 2|").eval() == 5)
+    assert(parser.parse("a * |a * 3 + b * 2|").eval() == "aaaaa")
+    assert(parser.parse("a * |a * 3 + b * 2| + b * | b * |a * 5| + b * | b * 3||").eval() == "aaaaabbbbbbbb")

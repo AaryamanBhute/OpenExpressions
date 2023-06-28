@@ -1,5 +1,5 @@
 from enum import Enum
-from Operators import *
+from ExpressionNodes import *
 from Grammar import Grammar
 from Tokenizer import Tokenizer
 from ParseTable import ParseTable, Reduce, Shift
