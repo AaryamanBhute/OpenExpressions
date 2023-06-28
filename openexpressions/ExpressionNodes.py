@@ -1,15 +1,18 @@
 from abc import ABC, abstractmethod
 
-class Operand(ABC):
+class ExpressionNode(ABC):
+    @abstractmethod
+    def eval(self):
+        pass
+
+class Operand(ExpressionNode):
     @property
     @abstractmethod
     def identifier(self):pass
-
-    @abstractmethod
+    
     def __init__(self, v) -> None:
         self.val = v
-    def eval(self):
-        pass
+
 class Int(Operand):
     identifier = r"\d+(?!\.)"
     def __init__(self, v) -> None:
@@ -54,10 +57,8 @@ class BoolVar(Operand):
        if(val > 1 or val < 0): raise Exception("Boolean Var must be 0 or 1")
        return(val)
 
-class Operator(ABC):
-    @abstractmethod
-    def eval(self):
-        pass
+class Operator(ExpressionNode):
+    pass
 
 class BinOp(Operator):
     @property
