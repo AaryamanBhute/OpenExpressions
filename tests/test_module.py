@@ -18,6 +18,8 @@ def test_operations():
     basic_test(parser, "24 // 5")
     basic_test(parser, "24 % 5")
     basic_test(parser, "2 ** 5")
+
+    basic_test(parser, "-2 ** -5")
     basic_test(parser, "2.5 // 2")
     basic_test(parser, "2.5 // 2.5")
     basic_test(parser, "9 % 2")
