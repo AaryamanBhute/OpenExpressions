@@ -36,6 +36,7 @@ pip install openexpressions
 ```
 
 Source code is available at this [Github Repository](https://github.com/AaryamanBhute/OpenExpressions)
+Module info is available at [PyPi Page](https://pypi.org/project/openexpressions/)
 
 ## Documentation
 

@@ -1,9 +1,14 @@
 
 from distutils.core import setup
+from pathlib import Path
+
+this_directory = Path(__file__).parent
+long_description = (this_directory / "README.md").read_text()
+
 setup(
   name = 'openexpressions',
   packages = ['openexpressions'],
-  version = '1.0',
+  version = '1.3',
   license='MIT',
   description = 'A easy to use and expandable expression parser',
   author = 'Aaryaman Bhute',
@@ -27,4 +32,6 @@ setup(
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
   ],
+  long_description=long_description,
+  long_description_content_type='text/markdown'
 )
