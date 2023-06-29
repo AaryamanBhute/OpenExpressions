@@ -98,36 +98,36 @@ of each field, taking a look at the [Expression Node Declarations](#Expression-N
 - Float - _An Floating Point Literal_ - __identifier regex:__ \d*\\.\d+
 - Var - _A Variable Usage_ - __identifier regex:__ [a-zA-Z]\w*
 ##### Unary Operators (_UnOp_)
-- Neg - _Arithmetic Negation_ -  __identifier regex:__ - - 
---__order value__: 70000
+- Neg - _Arithmetic Negation_ -  __identifier regex:__ -
+__order value__: 70000
 ##### Binary Operators (_BinOp_)
 - Add - _Arithmetic Addition_ -  __identifier regex:__ \\+
---__order value__: 100000
+__order value__: 100000
 - Sub - _Arithmetic Subtraction_ -  __identifier regex:__ -
---__order value__: 100000
+__order value__: 100000
 - Mult - _Arithmetic Multiplication_ -  __identifier regex:__ \\*
---__order value__: 90000
+__order value__: 90000
 - Div - _Arithmetic Division -  __identifier regex:__ /
---__order value__: 90000
+__order value__: 90000
 - IntDiv - _Integer Division_ -  __identifier regex:__ //
---__order value__: 90000
+__order value__: 90000
 - Mod - _Arithmetic Modulo_ -  __identifier regex:__ %
---__order value__: 90000
+__order value__: 90000
 - Pow - _Arithmetic Exponentiation_ -  __identifier regex:__ \\*\\\*
---__order value__: 80000
+__order value__: 80000
 ##### Poly Operators (_PolyOp_)
 - Sum - _Summation Operator_ -  __identifier regex:__ SUM
--- __number of sub-expressions__: 4
--- _first sub-expression_: __counter variable__
--- _second sub-expression_: __lower bound count__
--- _third sub-expression_: __upper bound count__
--- _fourth sub-expression_: __evaluated expression__
+> - __number of sub-expressions__: 4
+> - _first sub-expression_: __counter variable__
+> - _second sub-expression_: __lower bound count__
+> - _third sub-expression_: __upper bound count__
+> - _fourth sub-expression_: __evaluated expression__
 - Prod - _Product Notation Operator_ -  __identifier regex:__ PROD
--- __number of sub-expressions__: 4
--- _first sub-expression_: __counter variable__
--- _second sub-expression_: __lower bound count__
--- _third sub-expression_: __upper bound count__
--- _fourth sub-expression_: __evaluated expression__
+> - __number of sub-expressions__: 4
+> - _first sub-expression_: __counter variable__
+> - _second sub-expression_: __lower bound count__
+> - _third sub-expression_: __upper bound count__
+> - _fourth sub-expression_: __evaluated expression__
 ##### Wrap Operators (_WrapOp_)
 - Paren - _Parenthetical Expression_ - __left identifier regex:__ \\( - __right identifier regex:__ \\)
 - Abs - _Absolute Value Expression_ - __left identifier regex:__ \\| - __right identifier regex:__ \\|
@@ -138,14 +138,14 @@ of each field, taking a look at the [Expression Node Declarations](#Expression-N
 - BoolVar - _A Boolean Variable_ - __identifier regex:__ [a-zA-Z]\w*
 ##### Unary Operators (_UnOp_)
 - Not - _Arithmetic Negation_ -  __identifier regex:__ ~
---__order value__: 70000
+__order value__: 70000
 ##### Binary Operators (_BinOp_)
 - BitAnd - _Logical And_ -  __identifier regex:__ &
---__order value__: 90000
+__order value__: 90000
 - BitOr - _Logical Or_ -  __identifier regex:__ |
---__order value__: 100000
+__order value__: 100000
 - BitXOr - _Logical XOr_ -  __identifier regex:__ \\^
---__order value__: 80000
+__order value__: 80000
 ##### Wrap Operators (_WrapOp_)
 - Paren - _Parenthetical Expression_ - __left identifier regex:__ \\( - __right identifier regex:__ \\)
 ### Advanced Usage
