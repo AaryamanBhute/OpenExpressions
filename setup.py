@@ -8,7 +8,7 @@ long_description = (this_directory / "README.md").read_text()
 setup(
   name = 'openexpressions',
   packages = ['openexpressions'],
-  version = '1.3',
+  version = '1.4',
   license='MIT',
   description = 'A easy to use and expandable expression parser',
   author = 'Aaryaman Bhute',
