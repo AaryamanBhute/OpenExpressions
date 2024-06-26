@@ -1,5 +1,5 @@
 # OpenExpressions
-## _The Most Simple And Expandable Python Expression Library_
+## _A Simple And Expandable Python Expression Library_
 
 OpenExpressions is a lightweight, open-source, and easily integrated expression library.
 ## Features
